@@ -2,21 +2,20 @@ import asyncio
 import logging
 import time
 from asyncio import sleep
-from pathlib import Path
 
 import httpcore
 from gmqtt import Client as MQTTClient, Message
 from httpcore import ConnectError
 from prometheus_client.parser import text_string_to_metric_families
 
-from config import get_config_local
+from config import get_first_config
 
 __version__ = '0.0.1'
 
 
 class Prom2Mqtt:
     def __init__(self) -> None:
-        self.config = get_config_local(Path('config.yaml'))
+        self.config = get_first_config()
 
         if 'logging' in self.config:
             logging_level_name: str = self.config['logging'].upper()
