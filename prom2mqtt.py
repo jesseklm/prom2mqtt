@@ -10,7 +10,7 @@ from prometheus_client.parser import text_string_to_metric_families
 
 from config import get_first_config
 
-__version__ = '0.0.1'
+__version__ = '0.0.2'
 
 
 class Prom2Mqtt:
