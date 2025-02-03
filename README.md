@@ -18,7 +18,7 @@ Prom2MQTT periodically fetches metrics from configured Prometheus exporters, app
 
 1. Clone the repository:
 ```bash
-git clone https://github.com/yourusername/prom2mqtt.git
+git clone https://github.com/jesseklm/prom2mqtt.git
 cd prom2mqtt
 ```
 
