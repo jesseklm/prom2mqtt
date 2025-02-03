@@ -10,7 +10,7 @@ from prometheus_client.parser import text_string_to_metric_families
 
 from config import get_first_config
 
-__version__ = '0.0.2'
+__version__ = '0.0.3'
 
 
 class Prom2Mqtt:
@@ -26,7 +26,8 @@ class Prom2Mqtt:
                 logging.warning(f'unknown logging level: %s.', logging_level)
         self.update_rate: int = self.config.get('update_rate', 60)
 
-        will_message: Message = Message(f'{self.config["mqtt_topic"]}available', 'offline', will_delay_interval=10)
+        will_message: Message = Message(f'{self.config["mqtt_topic"]}available', 'offline', will_delay_interval=10,
+                                        retain=True)
         self.client: MQTTClient = MQTTClient(client_id=None, will_message=will_message)
         self.client.on_connect = self.on_connect
         self.client.set_auth_credentials(self.config['mqtt_username'], self.config['mqtt_password'])
