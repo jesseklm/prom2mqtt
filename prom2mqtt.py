@@ -10,7 +10,7 @@ from prometheus_client.parser import text_string_to_metric_families
 
 from config import get_first_config
 
-__version__ = '0.0.3'
+__version__ = '0.0.4'
 
 
 class Prom2Mqtt:
@@ -58,6 +58,7 @@ class Prom2Mqtt:
                                 self.client.publish(f'{self.config["mqtt_topic"]}{sample.name}_{labels}', sample.value)
             time_taken: float = time.perf_counter() - start_time
             time_to_sleep: float = self.update_rate - time_taken
+            logging.debug('looped in %.2fms, sleeping %.2fs.', time_taken * 1000, time_to_sleep)
             if time_to_sleep > 0:
                 await sleep(time_to_sleep)
 
