@@ -46,8 +46,8 @@ class Prom2Mqtt:
 
     async def loop(self) -> None:
         while True:
-            await self.connect_mqtt()
             start_time: float = time.perf_counter()
+            await self.connect_mqtt()
             for scraper in self.config['scrapers']:
                 for family in text_string_to_metric_families(await self.fetch(scraper['exporter_url'])):
                     if family.name in scraper['filters']:
