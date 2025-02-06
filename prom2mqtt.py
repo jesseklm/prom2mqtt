@@ -11,7 +11,7 @@ from prometheus_client.parser import text_string_to_metric_families
 
 from config import get_first_config
 
-__version__ = '0.0.6'
+__version__ = '0.0.7'
 
 
 class Prom2Mqtt:
@@ -46,7 +46,8 @@ class Prom2Mqtt:
         return False
 
     async def loop_iteration(self) -> None:
-        await self.connect_mqtt()
+        if not await self.connect_mqtt():
+            return
         for scraper in self.config['scrapers']:
             for family in text_string_to_metric_families(await self.fetch(scraper['exporter_url'])):
                 if family.name in scraper['filters']:
