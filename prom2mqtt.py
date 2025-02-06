@@ -2,7 +2,6 @@ import asyncio
 import logging
 import signal
 import time
-from asyncio import sleep
 
 import httpcore
 from gmqtt import Client as MQTTClient, Message
@@ -65,7 +64,7 @@ class Prom2Mqtt:
             time_to_sleep: float = self.update_rate - time_taken
             logging.debug('looped in %.2fms, sleeping %.2fs.', time_taken * 1000, time_to_sleep)
             if time_to_sleep > 0:
-                await sleep(time_to_sleep)
+                await asyncio.sleep(time_to_sleep)
 
     def on_connect(self, client, flags, rc, properties):
         client.publish(f'{self.config["mqtt_topic"]}available', 'online', retain=True)
