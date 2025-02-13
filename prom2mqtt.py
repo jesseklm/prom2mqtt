@@ -10,7 +10,7 @@ from prometheus_client.parser import text_string_to_metric_families
 from config import get_first_config
 from mqtt_handler import MqttHandler
 
-__version__ = '0.0.8'
+__version__ = '0.0.9'
 
 
 class Prom2Mqtt:
@@ -38,7 +38,8 @@ class Prom2Mqtt:
                     for sample in family.samples:
                         labels = '_'.join(f'{label}_{value}' for label, value in sample.labels.items())
                         logging.debug("Name: {0} Labels: {1} Value: {2}".format(*sample))
-                        self.mqtt_handler.publish(f'{sample.name}_{labels}', sample.value)
+                        topic = f'{sample.name}_{labels}'.replace('/', '_')
+                        self.mqtt_handler.publish(topic, sample.value)
 
     async def loop(self) -> None:
         while True:
