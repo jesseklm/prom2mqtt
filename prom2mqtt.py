@@ -10,7 +10,7 @@ from prometheus_client.parser import text_string_to_metric_families
 from config import get_first_config
 from mqtt_handler import MqttHandler
 
-__version__ = '0.0.10'
+__version__ = '0.0.11'
 
 
 class Prom2Mqtt:
@@ -35,10 +35,17 @@ class Prom2Mqtt:
         for scraper in self.config['scrapers']:
             for family in text_string_to_metric_families(await self.fetch(scraper['exporter_url'])):
                 if family.name in scraper['filters']:
+                    label_filters = scraper['filters'][family.name]
                     for sample in family.samples:
+                        if label_filters and not all(
+                                sample.labels.get(label_name)
+                                in ([allowed] if isinstance(allowed, str) else allowed)
+                                for label_name, allowed in label_filters.items()
+                        ):
+                            continue
                         labels = '_'.join(f'{label}_{value}' for label, value in sample.labels.items())
                         logging.debug("Name: {0} Labels: {1} Value: {2}".format(*sample))
-                        topic = f'{sample.name}_{labels}'.replace('/', '_')
+                        topic = f'{sample.name}_{labels}'.replace('/', '_').replace('__', '_')
                         self.mqtt_handler.publish(topic, sample.value)
 
     async def loop(self) -> None:

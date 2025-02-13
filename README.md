@@ -1,18 +1,17 @@
 # Prom2MQTT
 
-A lightweight Python bridge to scrape Prometheus metrics and publish them to an MQTT broker. Designed for IoT, smart home systems (like Home Assistant), and monitoring pipelines.
+A lightweight Python bridge to scrape Prometheus metrics and publish them to an MQTT broker. Designed for IoT use cases, smart home systems (e.g., Home Assistant), and monitoring pipelines.
 
 ## Overview
 
-Prom2MQTT periodically fetches metrics from configured Prometheus exporters, applies filters, and publishes them to an MQTT broker. Metrics are converted to MQTT topics for easy integration with IoT platforms or dashboards.
+Prom2MQTT periodically fetches metrics from configured Prometheus exporters, applies flexible label-based filters, and publishes the metrics to an MQTT broker. The metrics are converted into MQTT topics for straightforward integration with IoT platforms, dashboards, or automation systems.
 
 ## Features
 
-- **Scrape Prometheus endpoints** on a configurable interval.
-- **Filter metrics** by name to publish only relevant data.
-- **MQTT support** with authentication and retained availability messages.
-- **Async I/O** for efficient performance.
-- **Customizable MQTT topic structure** using metric names and labels.
+- **Scrape Prometheus endpoints** on a configurable interval
+- **Label-based filtering** to publish only specific metrics
+- **Async I/O** for efficient performance
+- **Customizable topic structure** using metric names and labels
 
 ## Installation
 
@@ -40,10 +39,21 @@ update_rate: 60  # Seconds between updates
 
 scrapers:
   - exporter_url: "http://localhost:9100/metrics"
-    filters: ["node_cpu_seconds_total", "node_memory_Active_bytes"]
+    filters:
+      node_cpu_seconds_total:
+        cpu:
+          - "0"
+          - "1"
+        mode: idle
+      node_memory_Active_bytes:
 ```
-- **mqtt_topic**: Base topic for published metrics (e.g., `home/metrics/cpu_usage`).
-- **scrapers**: List of endpoints to scrape and their metric filters.
+
+- **mqtt_server**: The MQTT broker URL. For TLS, you could use `mqtts://your-broker:8883`.
+- **mqtt_topic**: The base MQTT topic for published metrics (e.g., `home/metrics/node_cpu_seconds_total_cpu_0_mode_idle`).
+- **update_rate**: Interval in seconds between scrapes.
+- **scrapers**: A list of Prometheus endpoints to scrape along with filters:
+  - In this example, `node_cpu_seconds_total` is published only for `cpu` values `"0"` or `"1"` and `mode="idle"`.  
+  - `node_memory_Active_bytes` is published with no additional label filters.
 
 ## Usage
 
@@ -53,11 +63,18 @@ python prom2mqtt.py
 ```
 
 ### Example MQTT Topic
-A metric like `node_cpu_seconds_total{cpu="0",mode="idle"}` becomes:
+
+A metric like:
+```
+node_cpu_seconds_total{cpu="0",mode="idle"}
+```
+is published to the MQTT topic:
 ```
 home/metrics/node_cpu_seconds_total_cpu_0_mode_idle
 ```
 
 ## Metrics Filtering
 
-Only metrics listed under `filters` in `config.yaml` are published. Use Prometheus metric names directly (e.g., `node_network_up`).
+Only metrics (and their labels) listed under `filters` in `config.yaml` are published.  
+Use the exact Prometheus metric names (e.g., `node_network_up`).  
+For each label, you can specify either a single value or a list of values to allow.
