@@ -10,13 +10,14 @@ from prometheus_client.parser import text_string_to_metric_families
 from config import get_first_config
 from mqtt_handler import MqttHandler
 
-__version__ = '0.0.11'
+__version__ = '0.0.12'
 
 
 class Prom2Mqtt:
     def __init__(self) -> None:
         self.config = get_first_config()
         self.setup_logging()
+        self.metric_url = self.config.get('victoriametrics_prom_import_url')
         self.update_rate: int = self.config.get('update_rate', 60)
         self.mqtt_handler: MqttHandler = MqttHandler(self.config)
 
@@ -47,6 +48,24 @@ class Prom2Mqtt:
                         logging.debug("Name: {0} Labels: {1} Value: {2}".format(*sample))
                         topic = f'{sample.name}_{labels}'.replace('/', '_').replace('__', '_')
                         self.mqtt_handler.publish(topic, sample.value)
+                        if self.metric_url:
+                            await self.send_metric(topic, str(sample.value))
+
+    async def send_metric(self, metric_name: str, value: str) -> str:
+        async with httpcore.AsyncConnectionPool() as http:
+            try:
+                content = f'{metric_name} {value}'
+                response = await http.request(
+                    method='POST',
+                    url=self.metric_url,
+                    content=content.encode()
+                )
+                return response.content.decode()
+            except ConnectError as e:
+                logging.warning(f'{e=}, {content=}')
+            except Exception as e:
+                logging.error(f'{e=}, {content=}')
+            return ''
 
     async def loop(self) -> None:
         while True:
