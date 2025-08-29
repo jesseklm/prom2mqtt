@@ -23,10 +23,12 @@ class MqttHandler:
         self.mqttc.on_message = self.on_message
         self.mqttc.set_auth_credentials(config['mqtt_username'], config['mqtt_password'])
 
-    def on_connect(self, client, flags, rc, properties):
+    def on_connect(self, client: MQTTClient, flags, rc, properties):
         client.publish(self.topic_prefix + 'available', 'online', retain=True)
         logging.info('mqtt connected.')
-        if self.subscriptions:
+        if client.subscriptions:
+            client._connection.subscribe(client.subscriptions)
+        elif self.subscriptions:
             client.subscribe(self.subscriptions)
 
     async def on_message(self, client, topic, payload, qos, properties):
@@ -42,6 +44,12 @@ class MqttHandler:
     async def connect(self) -> bool:
         if self.mqttc.is_connected:
             return True
+        try:
+            await self.mqttc._connection.close()
+        except AttributeError:
+            pass
+        except Exception as e:
+            logging.warning(f'mqtt close: {self.host=}, {e=}')
         try:
             await self.mqttc.connect(self.host, self.port)
             return True
