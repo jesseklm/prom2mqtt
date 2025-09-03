@@ -10,7 +10,7 @@ from prometheus_client.parser import text_string_to_metric_families
 from config import get_first_config
 from mqtt_handler import MqttHandler
 
-__version__ = '0.0.14'
+__version__ = '0.0.15'
 
 
 class Prom2Mqtt:
@@ -31,8 +31,6 @@ class Prom2Mqtt:
                 logging.warning(f'unknown logging level: %s.', logging_level)
 
     async def loop_iteration(self) -> None:
-        if not await self.mqtt_handler.connect():
-            return
         for scraper in self.config['scrapers']:
             for family in text_string_to_metric_families(await self.fetch(scraper['exporter_url'])):
                 if family.name in scraper['filters']:

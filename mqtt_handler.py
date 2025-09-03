@@ -3,6 +3,8 @@ import logging
 
 from gmqtt import Client as MQTTClient, Message, Subscription
 
+from background_tasks import run_in_background
+
 
 class MqttHandler:
     def __init__(self, config: dict, sub_topics=None, message_callback=None) -> None:
@@ -23,6 +25,7 @@ class MqttHandler:
         self.mqttc.on_disconnect = self.on_disconnect
         self.mqttc.on_message = self.on_message
         self.mqttc.set_auth_credentials(config['mqtt_username'], config['mqtt_password'])
+        run_in_background(self.connect())
 
     def on_connect(self, client: MQTTClient, flags, rc, properties):
         self.publish('available', 'online', retain=True)
