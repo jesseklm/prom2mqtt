@@ -5,14 +5,18 @@ import yaml
 
 
 def get_config_local(filename: Path) -> dict:
-    with open(filename) as file:
-        return yaml.safe_load(file)
+    with open(filename, encoding='utf-8') as file:
+        try:
+            return yaml.safe_load(file)
+        except yaml.YAMLError as e:
+            print(e)
+            return {'error': str(e)}
 
 
 def get_first_config() -> dict:
     files: list[Path] = [
         Path('/config/config.yaml'),
-        Path('config.yaml')
+        Path('config.yaml'),
     ]
     for file in files:
         if file.exists():

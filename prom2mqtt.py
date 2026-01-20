@@ -10,7 +10,7 @@ from prometheus_client.parser import text_string_to_metric_families
 from config import get_first_config
 from mqtt_handler import MqttHandler
 
-__version__ = '0.0.15'
+__version__ = '0.0.16'
 
 
 class Prom2Mqtt:
@@ -66,14 +66,17 @@ class Prom2Mqtt:
             return ''
 
     async def loop(self) -> None:
-        while True:
-            start_time: float = time.perf_counter()
-            await self.loop_iteration()
-            time_taken: float = time.perf_counter() - start_time
-            time_to_sleep: float = self.update_rate - time_taken
-            logging.debug('looped in %.2fms, sleeping %.2fs.', time_taken * 1000, time_to_sleep)
-            if time_to_sleep > 0:
-                await asyncio.sleep(time_to_sleep)
+        try:
+            while True:
+                start_time: float = time.perf_counter()
+                await self.loop_iteration()
+                time_taken: float = time.perf_counter() - start_time
+                time_to_sleep: float = self.update_rate - time_taken
+                logging.debug('looped in %.2fms, sleeping %.2fs.', time_taken * 1000, time_to_sleep)
+                if time_to_sleep > 0:
+                    await asyncio.sleep(time_to_sleep)
+        except KeyboardInterrupt:
+            await self.mqtt_handler.mqttc.disconnect()
 
     async def exit(self):
         await self.mqtt_handler.disconnect()

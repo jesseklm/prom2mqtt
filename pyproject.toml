@@ -1,0 +1,11 @@
+[project]
+name = "prom2mqtt"
+version = "0.0.16"
+description = "Bridge Prometheus metrics to MQTT for IoT and smart home integration. Configure scrapers, filter metrics, and publish to MQTT brokers with ease."
+requires-python = ">=3.14"
+dependencies = [
+    "gmqtt>=0.7.0",
+    "httpcore[asyncio]>=1.0.9",
+    "prometheus-client>=0.24.1",
+    "pyyaml==6.0.3",
+]
